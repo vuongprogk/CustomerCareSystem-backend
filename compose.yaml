@@ -1,0 +1,6 @@
+﻿services:
+  customercaresystem:
+    image: customercaresystem
+    build:
+      context: .
+      dockerfile: CustomerCareSystem/Dockerfile
