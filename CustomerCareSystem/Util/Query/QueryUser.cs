@@ -12,6 +12,11 @@ public static class QueryUser
         UpdatedDate = @UpdatedDate,
         Address = @Address,
         WHERE Id = @Id;
+        SELECT Id, FirstName, LastName, Email, 
+        PhoneNumber, HashedPassword, RoleId, 
+        CreatedDate, UpdatedDate, Address, DepartmentID
+        FROM Users
+        WHERE Id = @Id;
         """;
 
     public const string RegisterNewUser =
@@ -20,6 +25,11 @@ public static class QueryUser
         VALUES (@Id, @FirstName, @LastName, @Email, @PhoneNumber, 
                 @HashedPassword, @RoleId, @CreatedDate, 
                 @UpdatedDate, @Address, @DepartmentId);
+        SELECT Id, FirstName, LastName, Email, 
+        PhoneNumber, HashedPassword, RoleId, 
+        CreatedDate, UpdatedDate, Address, DepartmentID
+        FROM Users
+        WHERE Id = @Id;
         """;
 
     public const string GetUserById =
@@ -36,7 +46,7 @@ public static class QueryUser
         SELECT Id, FirstName, LastName, Email, 
         PhoneNumber, HashedPassword, RoleId, 
         CreatedDate, UpdatedDate, Address, DepartmentID 
-        FROM Users
+        FROM Users;
         """;
 
     public const string DeleteUserById =

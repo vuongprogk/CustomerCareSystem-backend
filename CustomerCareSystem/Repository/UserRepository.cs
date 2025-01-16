@@ -4,22 +4,24 @@ using CustomerCareSystem.Model;
 using CustomerCareSystem.Util;
 using CustomerCareSystem.Util.SD;
 using Dapper;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 
 namespace CustomerCareSystem.Repository;
 
-public class UserRepository(ApplicationDbContext db, IRoleRepository roleRepository)
-    : GenericRepository<User>(db), IUserRepository
+public class UserRepository(ApplicationDbContext db, IRoleRepository roleRepository,     IDistributedCache cache,
+    ILogger<GenericRepository<User>> logger)
+    : GenericRepository<User>(db, cache, logger), IUserRepository
 {
     private readonly ApplicationDbContext _dbContext = db;
 
     public async Task<User?> RegisterNewUser(User user, string role)
     {
-        var isExistCustomer = await roleRepository.GetByNameAsync(QueryRole.GetRoleByName, role);
+        var isExistCustomer = await roleRepository.GetByNameAsync(QueryRole.GetRoleByName, role, RedisKey.RoleName(role));
         if (isExistCustomer is null)
         {
             var createdSuccess =
-                await roleRepository.AddAsync(QueryRole.AddRole, new Role() { Name = role, Description = role });
+                await roleRepository.AddAsync(QueryRole.AddRole, new Role() { Name = role, Description = role }, RedisKey.Roles);
             if (createdSuccess is null)
             {
                 return null;

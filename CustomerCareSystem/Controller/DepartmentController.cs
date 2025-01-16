@@ -2,81 +2,134 @@
 using CustomerCareSystem.Interface;
 using CustomerCareSystem.Model;
 using CustomerCareSystem.Util.SD;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerCareSystem.Controller;
 
 [ApiController]
 [Route("api/department")]
+[Authorize(Roles = RoleValue.Admin)]
 public class DepartmentController(IDepartmentRepository department) : ControllerBase
 {
-    private readonly IDepartmentRepository _department = department;
-
     [HttpGet("departments")]
     public async Task<IActionResult> GetDepartments()
     {
-        var departments = await _department.GetAllAsync(QueryDepartment.GetDepartments);
+        var departments = await department.GetAllAsync(QueryDepartment.GetDepartments, RedisKey.Departments);
 
-        return Ok(departments);
+        return StatusCode(StatusCodes.Status200OK, new ResponseObjects()
+        {
+            Status = StatusResponse.FetchSuccess,
+            Message = MessageResponse.UpdateRoleSuccess,
+            Result = departments
+        });
     }
 
     [HttpGet("department/{id}")]
     public async Task<IActionResult> GetDepartment(string id)
     {
-        var department = await _department.GetByIdAsync(QueryDepartment.GetDepartmentById, id);
-        if (department == null)
+        var departmentObj =
+            await department.GetByIdAsync(QueryDepartment.GetDepartmentById, id, RedisKey.DepartmentKey(id));
+        if (departmentObj == null)
         {
-            return NotFound();
+            return StatusCode(StatusCodes.Status404NotFound, new ResponseObject()
+            {
+                Status = StatusResponse.FetchError,
+                Message = MessageResponse.NotFound,
+            });
         }
 
-        return Ok(department);
+        return StatusCode(StatusCodes.Status200OK, new ResponseObject()
+        {
+            Status = StatusResponse.FetchSuccess,
+            Message = MessageResponse.FetchSuccess,
+            Result = departmentObj
+        });
     }
 
     [HttpPost("department")]
-    public async Task<IActionResult> AddDepartment([FromBody] AddDepartmentDto department)
+    public async Task<IActionResult> AddDepartment([FromBody] AddDepartmentDto departmentSent)
     {
-        var deparmentObj = new Department()
+        var departmentObj = new Department()
         {
-            Id = department.Id.ToUpper(),
-            Name = department.Name,
-            Description = department.Description,
+            Id = departmentSent.Id.ToUpper(),
+            Name = departmentSent.Name,
+            Description = departmentSent.Description,
         };
-        var result = await _department.AddAsync(QueryDepartment.AddDepartment, deparmentObj);
-        if (result is null)
+        var isDuplicate = await department.GetByIdAsync(QueryDepartment.GetDepartmentById, departmentSent.Id,
+            RedisKey.DepartmentKey(departmentSent.Id));
+        if (isDuplicate != null)
         {
-            return BadRequest();
+            return StatusCode(StatusCodes.Status400BadRequest, new ResponseObject()
+            {
+                Status = StatusResponse.AddError,
+                Message = MessageResponse.AddDepartmentFailed
+            });
         }
 
-        return Ok("Department added successfully");
+        var result = await department.AddAsync(QueryDepartment.AddDepartment, departmentObj, RedisKey.Departments);
+        return StatusCode(result is null ? StatusCodes.Status400BadRequest : StatusCodes.Status201Created, new ResponseObject()
+        {
+            Status = StatusResponse.AddError,
+            Message = MessageResponse.AddDepartmentFailed
+        });
     }
 
     [HttpPut("department/{id}")]
-    public async Task<IActionResult> UpdateDepartment([FromBody] UpdateDepartmentDto department, string id)
+    public async Task<IActionResult> UpdateDepartment([FromBody] UpdateDepartmentDto departmentSent, string id)
     {
         var departmentObj = new Department()
         {
             Id = id.ToUpper(),
-            Name = department.Name,
-            Description = department.Description,
+            Name = departmentSent.Name,
+            Description = departmentSent.Description,
         };
-        var result = await _department.UpdateAsync(QueryDepartment.UpdateDepartment, departmentObj);
+        var result = await department.UpdateAsync(QueryDepartment.UpdateDepartment, departmentObj,
+            RedisKey.Departments, RedisKey.DepartmentKey(id));
         if (result is null)
         {
-            return BadRequest();
+            return StatusCode(StatusCodes.Status400BadRequest, new ResponseObject()
+            {
+                Status = StatusResponse.UpdateError,
+                Message = MessageResponse.UpdateDepartmentFailed
+            });
         }
 
-        return Ok("Department updated successfully");
+        return StatusCode(StatusCodes.Status200OK, new ResponseObject()
+        {
+            Status = StatusResponse.Success,
+            Message = MessageResponse.UpdateDepartmentSuccess
+        });
     }
 
     [HttpDelete("department/{id}")]
     public async Task<IActionResult> DeleteDepartment(string id)
     {
-        var result = await _department.DeleteAsync(QueryDepartment.DeleteDepartmentById, id);
-        if (result is null)
+        var isExit = await department.GetByIdAsync(QueryDepartment.GetDepartmentById, id, RedisKey.DepartmentKey(id));
+        if (isExit is null)
         {
-            return BadRequest();
+            return StatusCode(StatusCodes.Status404NotFound, new ResponseObject()
+            {
+                Status = StatusResponse.FetchError,
+                Message = MessageResponse.NotFound
+            });
         }
 
-        return Ok("Department deleted successfully");
+        var result = await department.DeleteAsync(QueryDepartment.DeleteDepartmentById, id, RedisKey.Departments,
+            RedisKey.DepartmentKey(id));
+        if (result is null)
+        {
+            return StatusCode(StatusCodes.Status400BadRequest, new ResponseObject()
+            {
+                Status = StatusResponse.Error,
+                Message = MessageResponse.DeleteDepartmentFailed
+            });
+        }
+
+        return StatusCode(StatusCodes.Status200OK, new ResponseObject()
+        {
+            Status = StatusResponse.Success,
+            Message = MessageResponse.DeleteDepartmentSuccess
+        });
     }
 }

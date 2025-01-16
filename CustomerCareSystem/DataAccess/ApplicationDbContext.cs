@@ -7,7 +7,7 @@ public class ApplicationDbContext: IDisposable
 {
     private readonly IConfiguration _configuration;
     private readonly string _connection;
-    private IDbConnection _db;
+    private IDbConnection? _db;
 
     public ApplicationDbContext(IConfiguration configuration)
     {
@@ -17,7 +17,7 @@ public class ApplicationDbContext: IDisposable
 
     public IDbConnection GetConnection()
     {
-        if (_db == null || _db.State != ConnectionState.Open)
+        if (_db is not { State: ConnectionState.Open })
         {
             _db = new SqlConnection(_connection);
             _db.Open();
@@ -26,10 +26,9 @@ public class ApplicationDbContext: IDisposable
     }
     public void Dispose()
     {
-        if (_db != null || _db.State != ConnectionState.Closed)
-        {
-            _db?.Close();
-            _db?.Dispose();
-        }
+        if (_db == null) return;
+        if (_db.State == ConnectionState.Closed) return;
+        _db?.Close();
+        _db?.Dispose();
     }
 }

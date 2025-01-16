@@ -28,12 +28,13 @@ public class TokenService : ITokenService
         var credential = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var claims = new[]
         {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Name, user.LastName),
             new Claim(JwtRegisteredClaimNames.Email, user.Email)
         };
         if (user.RoleId != null)
         {
-            var role = await _role.GetByIdAsync(QueryRole.GetRoleById, user.RoleId.ToString());
+            var role = await _role.GetByIdAsync(QueryRole.GetRoleById, user.RoleId.ToString(), RedisKey.RoleKey(user.RoleId.ToString()));
             if (role != null)
             {
                 var roleClaims = new Claim(RoleValue.RoleName, role.Name);

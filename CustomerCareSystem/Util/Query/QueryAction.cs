@@ -38,7 +38,10 @@ public static class QueryAction
 
     public const string AddAction =
         """
-        INSERT INTO Actions (FormId, PerformBy, ActionDate, Description)
-        VALUES (@FormId, @PerformBy, @ActionDate, @Description)
+        INSERT INTO Actions (Id, FormId, PerformBy, ActionDate, Description)
+        VALUES (@Id,@FormId, @PerformBy, @ActionDate, @Description);
+        SELECT Id, FormId, PerformBy, ActionDate, Description
+        FROM Actions
+        WHERE Id = @Id;
         """;
 }

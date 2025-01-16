@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using CustomerCareSystem.Util.SD;
 
 namespace CustomerCareSystem.DTO.User;
 
@@ -18,4 +19,5 @@ public class RegisterUserDTO
     [MinLength(8, ErrorMessage = "Password must be at least 8 characters long")]
     public string Password { get; set; }
     public string Address { get; set; }
+    public string Role { get; set; } = RoleValue.Customer;
 }
