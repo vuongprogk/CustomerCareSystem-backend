@@ -14,11 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 // register cors
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: Cors.CorsPolicy, policy =>
+    options.AddPolicy(
+        name: Cors.CorsPolicy,
+        policy =>
     {
-        policy.WithOrigins("http://localhost:5173").
-        AllowAnyMethod().
-        AllowAnyHeader();
+            policy.WithOrigins("http://localhost:3000", "http://localhost:5001").AllowAnyMethod().AllowAnyHeader();
+        }
+    );
     });
 });
 
