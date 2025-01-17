@@ -26,6 +26,7 @@ builder.Services.AddCors(options =>
 
 // register db context
 builder.Services.AddScoped<ApplicationDbContext>();
+
 // register repository
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
@@ -34,15 +35,18 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ICustomerFormRepository, CustomerFormRepository>();
 builder.Services.AddScoped<IActionRepository, ActionRepository>();
 
-
-builder.Services.AddAuthentication(option =>
+builder
+    .Services.AddAuthentication(option =>
 {
     option.DefaultScheme =
         option.DefaultChallengeScheme =
             option.DefaultAuthenticateScheme =
-                option.DefaultForbidScheme = option.DefaultSignInScheme =
-                    option.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(option =>
+            option.DefaultForbidScheme =
+            option.DefaultSignInScheme =
+            option.DefaultSignOutScheme =
+                JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(option =>
 {
     option.TokenValidationParameters = new TokenValidationParameters()
     {
@@ -52,8 +56,10 @@ builder.Services.AddAuthentication(option =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Issuer"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-        RoleClaimType = RoleValue.RoleName
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            ),
+            RoleClaimType = RoleValue.RoleName,
     };
 });
 
@@ -63,7 +69,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions()
     {
         AbortOnConnectFail = false,
-        EndPoints = { options.Configuration }
+        EndPoints = { options.Configuration },
     };
 });
 builder.Services.AddControllers();
