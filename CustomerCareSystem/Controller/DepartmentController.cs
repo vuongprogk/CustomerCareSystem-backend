@@ -68,11 +68,21 @@ public class DepartmentController(IDepartmentRepository department) : Controller
         }
 
         var result = await department.AddAsync(QueryDepartment.AddDepartment, departmentObj, RedisKey.Departments);
-        return StatusCode(result is null ? StatusCodes.Status400BadRequest : StatusCodes.Status201Created, new ResponseObject()
+        if (result is null)
         {
-            Status = StatusResponse.AddError,
-            Message = MessageResponse.AddDepartmentFailed
+            return StatusCode(StatusCodes.Status400BadRequest, new ResponseObject()
+            {
+                Status = StatusResponse.AddError,
+                Message = MessageResponse.AddDepartmentFailed
+            });
+        }
+        return StatusCode(StatusCodes.Status201Created, new ResponseObject()
+        {
+            Status = StatusResponse.AddSuccess,
+            Message = MessageResponse.AddDepartmentSuccess,
+            Result = result
         });
+
     }
 
     [HttpPut("department/{id}")]
