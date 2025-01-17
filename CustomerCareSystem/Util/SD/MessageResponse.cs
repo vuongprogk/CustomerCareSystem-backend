@@ -30,6 +30,7 @@ public static class MessageResponse
     public const string UpdateDepartmentSuccess = "Updating department successful";
     public const string DeleteDepartmentFailed = "Deleting department failed";
     public const string DeleteDepartmentSuccess = "Deleting department successful";
+    public static string AddDepartmentSuccess = "Adding department successfully";
     
     // Customer Form message
     public static string AddCustomerFormFailed = "Adding customer form failed";
